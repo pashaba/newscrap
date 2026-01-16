@@ -1,1290 +1,339 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
+    <title>Web Inspector - Simple Version</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Inspector Pro</title>
     <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3a0ca3;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --gray: #6c757d;
-            --border: #dee2e6;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: var(--dark);
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 30px 40px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .controls {
-            padding: 25px 40px;
-            background: var(--light);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .url-input {
-            flex: 1;
-            min-width: 300px;
-            padding: 15px 20px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            font-size: 16px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            transition: all 0.3s;
-        }
-        
-        .url-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-        }
-        
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
-        }
-        
-        .btn-secondary {
-            background: var(--success);
-            color: white;
-        }
-        
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-        
-        .proxy-options {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .proxy-select {
-            padding: 10px 15px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: white;
-            font-size: 14px;
-        }
-        
-        .proxy-label {
-            font-weight: 500;
-            color: var(--gray);
-        }
-        
-        .tabs {
-            display: flex;
-            background: white;
-            border-bottom: 1px solid var(--border);
-            overflow-x: auto;
-        }
-        
-        .tab {
-            padding: 18px 30px;
-            color: var(--gray);
-            cursor: pointer;
-            font-weight: 500;
-            border-bottom: 3px solid transparent;
-            white-space: nowrap;
-            transition: all 0.3s;
-        }
-        
-        .tab:hover {
-            background: rgba(67, 97, 238, 0.05);
-            color: var(--primary);
-        }
-        
-        .tab.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-            background: rgba(67, 97, 238, 0.08);
-        }
-        
-        .content {
-            padding: 30px;
-            min-height: 600px;
-        }
-        
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: var(--gray);
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(67, 97, 238, 0.1);
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error-box {
-            background: #fee;
-            border: 1px solid #fcc;
-            border-radius: 10px;
-            padding: 25px;
-            margin: 20px 0;
-            color: #c00;
-            display: none;
-        }
-        
-        .error-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-        }
-        
-        .error-details {
-            font-family: 'Consolas', monospace;
-            background: white;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 15px;
-            font-size: 14px;
-            border: 1px solid #fdd;
-            overflow-x: auto;
-        }
-        
-        .info-box {
-            background: #e8f4fd;
-            border: 1px solid #b6d4fe;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-            color: #084298;
-        }
-        
-        .code-container {
-            background: #1a1a1a;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 25px 0;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .code-header {
-            background: #2d2d2d;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #444;
-        }
-        
-        .code-title {
-            color: white;
-            font-weight: 500;
-            font-family: 'Consolas', monospace;
-        }
-        
-        .code-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .code-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-        
-        .code-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        .code-content {
-            padding: 20px;
-            overflow-x: auto;
-            max-height: 600px;
-        }
-        
-        pre {
-            margin: 0;
-            color: #e0e0e0;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 25px 0;
-        }
-        
-        .stat-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 20px;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .stat-title {
-            color: var(--gray);
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        .stat-value {
-            color: var(--dark);
-            font-size: 1.8rem;
-            font-weight: 700;
-        }
-        
-        .table-container {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 25px 0;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        th {
-            background: var(--light);
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--dark);
-            border-bottom: 2px solid var(--border);
-        }
-        
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        tr:hover {
-            background: rgba(67, 97, 238, 0.05);
-        }
-        
-        .tag-badge {
-            display: inline-block;
-            background: rgba(67, 97, 238, 0.1);
-            color: var(--primary);
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-family: 'Consolas', monospace;
-            font-size: 0.9rem;
-            margin: 2px;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        
-        .status-success {
-            background: #d1e7dd;
-            color: #0f5132;
-        }
-        
-        .status-error {
-            background: #f8d7da;
-            color: #842029;
-        }
-        
-        .status-warning {
-            background: #fff3cd;
-            color: #664d03;
-        }
-        
-        @media (max-width: 768px) {
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .url-input {
-                min-width: auto;
-            }
-            
-            .tabs {
-                flex-wrap: wrap;
-            }
-            
-            .tab {
-                padding: 15px 20px;
-                flex: 1;
-                min-width: 120px;
-                text-align: center;
-            }
-        }
-        
-        /* Syntax highlighting */
-        .token.tag { color: #e06c75; }
-        .token.attr-name { color: #d19a66; }
-        .token.attr-value { color: #98c379; }
-        .token.comment { color: #5c6370; }
-        .token.keyword { color: #c678dd; }
-        .token.function { color: #61afef; }
-        .token.string { color: #98c379; }
-        .token.number { color: #d19a66; }
-        .token.operator { color: #56b6c2; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; margin-bottom: 20px; text-align: center; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        button { padding: 12px 24px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #45a049; }
+        .tabs { display: flex; background: #f8f9fa; border-radius: 5px; margin-bottom: 20px; overflow-x: auto; }
+        .tab { padding: 15px 20px; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab.active { background: white; border-bottom: 3px solid #4CAF50; }
+        .content { background: white; padding: 20px; border-radius: 5px; min-height: 500px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; max-height: 600px; }
+        .loading { text-align: center; padding: 50px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error { background: #ffebee; color: #c62828; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .stats { background: #e8f5e8; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f5f5f5; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🌐 Website Inspector Pro</h1>
-            <p>Analisis kode HTML, CSS, dan JavaScript dari website dengan bypass protection</p>
-        </div>
+        <h1>🔍 Web Inspector</h1>
         
-        <div class="controls">
-            <input type="url" class="url-input" id="urlInput" 
-                   placeholder="https://example.com" 
-                   value="https://">
-            
-            <button class="btn btn-primary" onclick="inspectWebsite()">
-                <span class="btn-icon">🔍</span> Analisis Website
-            </button>
-            
-            <button class="btn btn-secondary" onclick="loadExample()">
-                <span class="btn-icon">📚</span> Contoh
-            </button>
-            
-            <div class="proxy-options">
-                <span class="proxy-label">Proxy:</span>
-                <select class="proxy-select" id="proxySelect">
-                    <option value="corsproxy">CORS Proxy</option>
-                    <option value="allorigins">AllOrigins</option>
-                    <option value="github">GitHub CORS</option>
-                    <option value="direct">Direct (Risiko 403)</option>
-                </select>
-                
-                <label style="margin-left: 15px;">
-                    <input type="checkbox" id="useHeaders" checked> Gunakan Headers Browser
-                </label>
-                
-                <label style="margin-left: 10px;">
-                    <input type="checkbox" id="useDelay" checked> Tambah Delay (2s)
-                </label>
-            </div>
+        <div class="input-group">
+            <input type="url" id="urlInput" placeholder="https://example.com" value="https://">
+            <button onclick="inspectWebsite()">Analisis</button>
         </div>
         
         <div class="tabs">
-            <div class="tab active" data-tab="overview">📊 Overview</div>
-            <div class="tab" data-tab="html">📄 HTML</div>
-            <div class="tab" data-tab="javascript">📜 JavaScript</div>
-            <div class="tab" data-tab="css">🎨 CSS</div>
-            <div class="tab" data-tab="links">🔗 Links</div>
-            <div class="tab" data-tab="resources">📦 Resources</div>
-            <div class="tab" data-tab="headers">📋 Headers</div>
+            <div class="tab active" onclick="showTab('html')">HTML</div>
+            <div class="tab" onclick="showTab('js')">JavaScript</div>
+            <div class="tab" onclick="showTab('css')">CSS</div>
+            <div class="tab" onclick="showTab('links')">Links</div>
+            <div class="tab" onclick="showTab('info')">Info</div>
         </div>
         
         <div class="content">
-            <!-- Error Display -->
-            <div class="error-box" id="errorBox">
-                <div class="error-title" id="errorTitle"></div>
-                <div id="errorMessage"></div>
-                <div class="error-details" id="errorDetails" style="display: none;"></div>
-                <button class="code-btn" onclick="toggleErrorDetails()" style="margin-top: 15px;">
-                    Tampilkan Detail Teknis
-                </button>
-            </div>
-            
             <!-- Loading -->
-            <div class="loading" id="loading">
+            <div id="loading" class="loading" style="display: none;">
                 <div class="spinner"></div>
-                <p id="loadingText">Mengambil data website...</p>
-                <p style="margin-top: 15px; font-size: 0.9rem; color: var(--gray);" id="proxyInfo"></p>
+                <p>Loading...</p>
             </div>
             
-            <!-- Overview Tab -->
-            <div class="tab-content active" id="overviewTab">
-                <div class="info-box">
-                    <strong>Tip:</strong> Untuk website dengan proteksi ketat (Cloudflare, dll), gunakan proxy "CORS Proxy" dan aktifkan "Gunakan Headers Browser".
-                </div>
-                
-                <div id="overviewContent">
-                    <!-- Content will be populated by JavaScript -->
-                </div>
-            </div>
+            <!-- Error -->
+            <div id="error" class="error" style="display: none;"></div>
             
             <!-- HTML Tab -->
-            <div class="tab-content" id="htmlTab">
-                <div class="code-container" id="htmlContainer">
-                    <div class="code-header">
-                        <div class="code-title">HTML Source Code</div>
-                        <div class="code-actions">
-                            <button class="code-btn" onclick="copyCode('htmlCode')">📋 Copy</button>
-                            <button class="code-btn" onclick="downloadCode('html', document.getElementById('htmlCode').textContent)">
-                                💾 Download
-                            </button>
-                        </div>
-                    </div>
-                    <div class="code-content">
-                        <pre><code id="htmlCode"></code></pre>
-                    </div>
-                </div>
-                
-                <div class="stats-grid" id="htmlStats">
-                    <!-- Stats will be populated by JavaScript -->
-                </div>
+            <div id="htmlTab" class="tab-content active">
+                <div class="stats" id="htmlStats"></div>
+                <pre><code id="htmlCode">Masukkan URL dan klik Analisis</code></pre>
             </div>
             
             <!-- JavaScript Tab -->
-            <div class="tab-content" id="javascriptTab">
-                <div class="code-container" id="jsContainer">
-                    <div class="code-header">
-                        <div class="code-title">JavaScript Code</div>
-                        <div class="code-actions">
-                            <button class="code-btn" onclick="copyCode('jsCode')">📋 Copy</button>
-                            <button class="code-btn" onclick="downloadCode('js', document.getElementById('jsCode').textContent)">
-                                💾 Download
-                            </button>
-                        </div>
-                    </div>
-                    <div class="code-content">
-                        <pre><code id="jsCode"></code></pre>
-                    </div>
-                </div>
-                
-                <div class="stats-grid" id="jsStats">
-                    <!-- Stats will be populated by JavaScript -->
-                </div>
+            <div id="jsTab" class="tab-content">
+                <div class="stats" id="jsStats"></div>
+                <pre><code id="jsCode">Tidak ada JavaScript</code></pre>
             </div>
             
             <!-- CSS Tab -->
-            <div class="tab-content" id="cssTab">
-                <div class="code-container" id="cssContainer">
-                    <div class="code-header">
-                        <div class="code-title">CSS Styles</div>
-                        <div class="code-actions">
-                            <button class="code-btn" onclick="copyCode('cssCode')">📋 Copy</button>
-                            <button class="code-btn" onclick="downloadCode('css', document.getElementById('cssCode').textContent)">
-                                💾 Download
-                            </button>
-                        </div>
-                    </div>
-                    <div class="code-content">
-                        <pre><code id="cssCode"></code></pre>
-                    </div>
-                </div>
-                
-                <div class="stats-grid" id="cssStats">
-                    <!-- Stats will be populated by JavaScript -->
-                </div>
+            <div id="cssTab" class="tab-content">
+                <div class="stats" id="cssStats"></div>
+                <pre><code id="cssCode">Tidak ada CSS</code></pre>
             </div>
             
             <!-- Links Tab -->
-            <div class="tab-content" id="linksTab">
-                <div class="table-container">
-                    <div class="code-header">
-                        <div class="code-title">Links Found</div>
-                    </div>
-                    <div id="linksContent">
-                        <!-- Links will be populated by JavaScript -->
-                    </div>
+            <div id="linksTab" class="tab-content">
+                <div id="linksContent">
+                    <p>Masukkan URL dan klik Analisis</p>
                 </div>
             </div>
             
-            <!-- Resources Tab -->
-            <div class="tab-content" id="resourcesTab">
-                <div class="table-container">
-                    <div class="code-header">
-                        <div class="code-title">External Resources</div>
-                    </div>
-                    <div id="resourcesContent">
-                        <!-- Resources will be populated by JavaScript -->
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Headers Tab -->
-            <div class="tab-content" id="headersTab">
-                <div class="code-container">
-                    <div class="code-header">
-                        <div class="code-title">Request Headers Used</div>
-                    </div>
-                    <div class="code-content">
-                        <pre><code id="headersCode"></code></pre>
-                    </div>
-                </div>
-                
-                <div class="info-box">
-                    <strong>Info:</strong> Headers ini digunakan untuk membuat request terlihat seperti berasal dari browser asli, membantu menghindari blokir 403.
+            <!-- Info Tab -->
+            <div id="infoTab" class="tab-content">
+                <div id="infoContent">
+                    <h3>Cara Menggunakan:</h3>
+                    <p>1. Masukkan URL website (contoh: https://example.com)</p>
+                    <p>2. Klik tombol "Analisis"</p>
+                    <p>3. Tunggu hingga proses selesai</p>
+                    <p>4. Pilih tab untuk melihat hasil analisis</p>
+                    
+                    <h3 style="margin-top: 20px;">Tips:</h3>
+                    <p>• Gunakan website yang mengizinkan CORS</p>
+                    <p>• Contoh URL: https://httpbin.org/html</p>
+                    <p>• Website dengan proteksi ketat mungkin akan error</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ==================== KONFIGURASI ====================
-        const PROXIES = {
-            corsproxy: {
-                name: "CORS Proxy",
-                url: "https://corsproxy.io/?",
-                method: "PREPEND"
-            },
-            allorigins: {
-                name: "AllOrigins",
-                url: "https://api.allorigins.win/get?url=",
-                method: "JSON"
-            },
-            github: {
-                name: "GitHub CORS",
-                url: "https://api.codetabs.com/v1/proxy/?quest=",
-                method: "DIRECT"
-            },
-            direct: {
-                name: "Direct",
-                url: "",
-                method: "DIRECT"
-            }
-        };
-        
-        const BROWSER_HEADERS = {
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Cache-Control': 'max-age=0',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"Windows"'
-        };
-        
-        // ==================== VARIABLES ====================
-        let currentAnalysis = null;
-        let lastRequestHeaders = {};
-        let retryCount = 0;
-        
-        // ==================== FUNGSI UTAMA ====================
+        // Fungsi utama untuk menganalisis website
         async function inspectWebsite() {
             const url = document.getElementById('urlInput').value.trim();
             
             // Validasi URL
             if (!url || url === 'https://') {
-                showError('Masukkan URL yang valid', 'URL tidak boleh kosong. Contoh: https://example.com');
+                showError('Masukkan URL yang valid (contoh: https://example.com)');
                 return;
             }
             
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                showError('Format URL salah', 'URL harus dimulai dengan http:// atau https://');
+                showError('URL harus dimulai dengan http:// atau https://');
                 return;
             }
             
             try {
-                // Reset UI
-                resetUI();
-                showLoading();
-                hideError();
+                // Tampilkan loading
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('error').style.display = 'none';
                 
-                // Dapatkan konfigurasi proxy
-                const proxyType = document.getElementById('proxySelect').value;
-                const useHeaders = document.getElementById('useHeaders').checked;
-                const useDelay = document.getElementById('useDelay').checked;
-                const proxy = PROXIES[proxyType];
+                console.log('Mencoba mengambil:', url);
                 
-                // Update info loading
-                document.getElementById('proxyInfo').textContent = 
-                    `Menggunakan proxy: ${proxy.name}${useHeaders ? ' dengan headers browser' : ''}`;
+                // Coba beberapa metode
+                const html = await fetchWithRetry(url);
                 
-                // Tambah delay jika diperlukan
-                if (useDelay) {
-                    document.getElementById('loadingText').textContent = 
-                        'Menunggu 2 detik untuk menghindari blokir...';
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                }
-                
-                // Siapkan request
-                let targetUrl = url;
-                let requestOptions = {
-                    method: 'GET',
-                    headers: {},
-                    mode: 'cors',
-                    cache: 'no-cache'
-                };
-                
-                // Tambah headers browser jika diaktifkan
-                if (useHeaders) {
-                    requestOptions.headers = {...BROWSER_HEADERS};
-                    // Simpan headers yang digunakan untuk ditampilkan
-                    lastRequestHeaders = {...BROWSER_HEADERS};
-                } else {
-                    lastRequestHeaders = {};
-                }
-                
-                // Handle proxy
-                switch (proxy.method) {
-                    case 'PREPEND':
-                        targetUrl = proxy.url + encodeURIComponent(url);
-                        break;
-                    case 'JSON':
-                        targetUrl = proxy.url + encodeURIComponent(url);
-                        break;
-                    case 'DIRECT':
-                        if (proxy.url) {
-                            targetUrl = proxy.url + encodeURIComponent(url);
-                        }
-                        break;
-                }
-                
-                console.log(`Request ke: ${targetUrl}`);
-                console.log('Headers:', requestOptions.headers);
-                
-                // Lakukan request
-                document.getElementById('loadingText').textContent = 
-                    `Mengambil data dari ${new URL(url).hostname}...`;
-                
-                const response = await fetch(targetUrl, requestOptions);
-                
-                // Handle response berdasarkan proxy type
-                let html = '';
-                let contentType = '';
-                
-                if (proxy.method === 'JSON') {
-                    const data = await response.json();
-                    html = data.contents;
-                    contentType = data.content_type || response.headers.get('content-type');
-                } else {
-                    html = await response.text();
-                    contentType = response.headers.get('content-type');
-                    
-                    // Jika dapat HTML error, coba parse
-                    if (!response.ok && html.includes('<html')) {
-                        // Continue dengan html yang didapat
-                    } else if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText || 'Request gagal'}`);
-                    }
-                }
-                
-                // Cek jika response valid
-                if (!html || html.trim().length === 0) {
-                    throw new Error('Response kosong atau tidak valid');
-                }
+                console.log('Berhasil mendapatkan HTML, panjang:', html.length);
                 
                 // Analisis HTML
-                await analyzeHTML(html, url, contentType);
+                analyzeHTML(html);
                 
-                // Reset retry count jika sukses
-                retryCount = 0;
+                // Sembunyikan loading
+                document.getElementById('loading').style.display = 'none';
                 
             } catch (error) {
                 console.error('Error:', error);
-                
-                // Coba retry dengan proxy lain jika masih dalam batas
-                if (retryCount < 2 && !error.message.includes('URL harus')) {
-                    retryCount++;
-                    await retryWithDifferentProxy(url);
-                } else {
-                    showError(
-                        'Gagal mengambil website',
-                        `Error: ${error.message}\n\nCoba:\n1. Ganti proxy lain\n2. Aktifkan "Gunakan Headers Browser"\n3. Cek URL dan koneksi internet`
-                    );
-                    retryCount = 0;
-                }
+                document.getElementById('loading').style.display = 'none';
+                showError('Gagal mengambil website: ' + error.message);
             }
         }
         
-        async function retryWithDifferentProxy(originalUrl) {
-            const currentProxy = document.getElementById('proxySelect').value;
-            const proxies = Object.keys(PROXIES);
-            const currentIndex = proxies.indexOf(currentProxy);
-            const nextProxy = proxies[(currentIndex + 1) % proxies.length];
+        // Fungsi untuk fetch dengan retry
+        async function fetchWithRetry(url) {
+            const proxies = [
+                'https://corsproxy.io/?',
+                'https://api.allorigins.win/raw?url=',
+                'https://api.codetabs.com/v1/proxy/?quest='
+            ];
             
-            // Update UI
-            document.getElementById('loadingText').textContent = 
-                `Mencoba dengan proxy ${PROXIES[nextProxy].name} (percobaan ${retryCount}/2)...`;
+            for (let i = 0; i < proxies.length; i++) {
+                try {
+                    const proxyUrl = proxies[i] + encodeURIComponent(url);
+                    console.log('Mencoba proxy ke-' + (i+1) + ':', proxyUrl);
+                    
+                    const response = await fetch(proxyUrl, {
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const text = await response.text();
+                    
+                    if (text && text.length > 0) {
+                        console.log('Berhasil dengan proxy ke-' + (i+1));
+                        return text;
+                    }
+                    
+                } catch (error) {
+                    console.log('Proxy ke-' + (i+1) + ' gagal:', error.message);
+                    // Lanjut ke proxy berikutnya
+                }
+            }
             
-            // Ganti proxy
-            document.getElementById('proxySelect').value = nextProxy;
-            
-            // Tunggu sebentar
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Coba lagi
-            await inspectWebsite();
+            throw new Error('Semua proxy gagal');
         }
         
-        function loadExample() {
-            document.getElementById('urlInput').value = 'https://httpbin.org/html';
-            inspectWebsite();
-        }
-        
-        // ==================== ANALISIS HTML ====================
-        async function analyzeHTML(html, originalUrl, contentType) {
+        // Fungsi untuk menganalisis HTML
+        function analyzeHTML(html) {
             try {
                 // Parse HTML
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
-                // Simpan data analisis
-                currentAnalysis = {
-                    url: originalUrl,
-                    html: html,
-                    doc: doc,
-                    contentType: contentType,
-                    timestamp: new Date().toLocaleString()
-                };
+                // Update HTML tab
+                updateHTMLTab(html, doc);
                 
-                // Update semua tab
-                updateOverviewTab();
-                updateHTMLTab();
-                updateJavaScriptTab();
-                updateCSSTab();
-                updateLinksTab();
-                updateResourcesTab();
-                updateHeadersTab();
+                // Update JavaScript tab
+                updateJavaScriptTab(doc);
                 
-                // Sembunyikan loading
-                hideLoading();
+                // Update CSS tab
+                updateCSSTab(doc);
                 
-                // Tampilkan tab overview
-                showTab('overview');
+                // Update Links tab
+                updateLinksTab(doc);
                 
             } catch (error) {
-                throw new Error(`Gagal menganalisis HTML: ${error.message}`);
+                console.error('Error analisis:', error);
+                showError('Error menganalisis HTML: ' + error.message);
             }
         }
         
-        // ==================== UPDATE TAB FUNCTIONS ====================
-        function updateOverviewTab() {
-            const { doc, html, url } = currentAnalysis;
+        // Update HTML tab
+        function updateHTMLTab(html, doc) {
+            // Format HTML sederhana
+            const formatted = formatHTML(html);
+            document.getElementById('htmlCode').textContent = formatted;
             
-            let overviewHTML = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-title">Total Karakter</div>
-                        <div class="stat-value">${html.length.toLocaleString()}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">Total Elemen</div>
-                        <div class="stat-value">${doc.querySelectorAll('*').length.toLocaleString()}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">Title</div>
-                        <div class="stat-value">${doc.title ? doc.title.substring(0, 30) + (doc.title.length > 30 ? '...' : '') : 'Tidak ada'}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-title">Status</div>
-                        <div class="stat-value"><span class="status-success status-badge">Berhasil</span></div>
-                    </div>
-                </div>
-                
-                <div class="table-container" style="margin-top: 30px;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Informasi</th>
-                                <th>Nilai</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>URL Target</strong></td>
-                                <td>${escapeHTML(url)}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Waktu Analisis</strong></td>
-                                <td>${currentAnalysis.timestamp}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Content-Type</strong></td>
-                                <td>${escapeHTML(currentAnalysis.contentType || 'Tidak diketahui')}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Doctype</strong></td>
-                                <td>${doc.doctype ? escapeHTML(doc.doctype.name) : 'HTML5'}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Charset</strong></td>
-                                <td>${doc.querySelector('meta[charset]') ? 
-                                     doc.querySelector('meta[charset]').getAttribute('charset') : 
-                                     (doc.querySelector('meta[http-equiv="content-type"]') ?
-                                      doc.querySelector('meta[http-equiv="content-type"]').getAttribute('content').split('charset=')[1] : 
-                                      'Tidak ditentukan')}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div style="margin-top: 30px;">
-                    <h3 style="margin-bottom: 15px;">Statistik Elemen</h3>
-                    <div class="stats-grid">
+            // Stats
+            const stats = `
+                <strong>Statistik HTML:</strong><br>
+                • Karakter: ${html.length.toLocaleString()}<br>
+                • Elemen: ${doc.querySelectorAll('*').length.toLocaleString()}<br>
+                • Title: ${doc.title || 'Tidak ada'}<br>
+                • Doctype: ${doc.doctype ? 'Ya' : 'Tidak'}
             `;
-            
-            // Hitung elemen populer
-            const popularTags = ['div', 'span', 'p', 'a', 'img', 'script', 'link', 'style', 'form', 'input'];
-            const tagCounts = {};
-            
-            popularTags.forEach(tag => {
-                tagCounts[tag] = doc.querySelectorAll(tag).length;
-            });
-            
-            popularTags.forEach(tag => {
-                if (tagCounts[tag] > 0) {
-                    overviewHTML += `
-                        <div class="stat-card">
-                            <div class="stat-title">&lt;${tag}&gt;</div>
-                            <div class="stat-value">${tagCounts[tag].toLocaleString()}</div>
-                        </div>
-                    `;
-                }
-            });
-            
-            overviewHTML += `
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('overviewContent').innerHTML = overviewHTML;
+            document.getElementById('htmlStats').innerHTML = stats;
         }
         
-        function updateHTMLTab() {
-            const { html } = currentAnalysis;
-            
-            // Format HTML dengan indentasi sederhana
-            const formattedHTML = formatHTML(html);
-            document.getElementById('htmlCode').textContent = formattedHTML;
-            
-            // Highlight syntax
-            highlightSyntax(document.getElementById('htmlCode'), 'html');
-            
-            // Update stats
-            const statsHTML = `
-                <div class="stat-card">
-                    <div class="stat-title">Karakter HTML</div>
-                    <div class="stat-value">${html.length.toLocaleString()}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Baris Kode (approx)</div>
-                    <div class="stat-value">${(html.split('\n').length).toLocaleString()}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Elemen Unik</div>
-                    <div class="stat-value">${getUniqueTags(currentAnalysis.doc).length}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Kompresi (approx)</div>
-                    <div class="stat-value">${(html.length / 1024).toFixed(1)} KB</div>
-                </div>
-            `;
-            
-            document.getElementById('htmlStats').innerHTML = statsHTML;
-        }
-        
-        function updateJavaScriptTab() {
-            const { doc } = currentAnalysis;
+        // Update JavaScript tab
+        function updateJavaScriptTab(doc) {
             const scripts = doc.querySelectorAll('script');
-            
             let jsCode = '';
-            let externalCount = 0;
-            let inlineCount = 0;
+            let external = 0;
+            let inline = 0;
             
-            scripts.forEach((script, index) => {
+            scripts.forEach(script => {
                 if (script.src) {
-                    externalCount++;
-                    jsCode += `// ===== External Script ${externalCount}: ${script.src} =====\n\n`;
-                    if (script.type) jsCode += `// Type: ${script.type}\n`;
-                    if (script.async) jsCode += `// Async: Yes\n`;
-                    if (script.defer) jsCode += `// Defer: Yes\n`;
-                    jsCode += '\n';
+                    external++;
+                    jsCode += `// External: ${script.src}\n\n`;
                 } else if (script.textContent && script.textContent.trim()) {
-                    inlineCount++;
-                    jsCode += `// ===== Inline Script ${inlineCount} =====\n\n`;
-                    jsCode += script.textContent.trim();
-                    jsCode += '\n\n'.repeat(2);
+                    inline++;
+                    jsCode += script.textContent.trim() + '\n\n';
                 }
             });
             
-            document.getElementById('jsCode').textContent = jsCode || '// Tidak ada JavaScript ditemukan';
-            highlightSyntax(document.getElementById('jsCode'), 'javascript');
+            document.getElementById('jsCode').textContent = jsCode || '// Tidak ada JavaScript';
             
-            // Update stats
-            const statsHTML = `
-                <div class="stat-card">
-                    <div class="stat-title">Total Scripts</div>
-                    <div class="stat-value">${scripts.length}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">External</div>
-                    <div class="stat-value">${externalCount}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Inline</div>
-                    <div class="stat-value">${inlineCount}</div>
-                </div>
+            const stats = `
+                <strong>Statistik JavaScript:</strong><br>
+                • Total Scripts: ${scripts.length}<br>
+                • External: ${external}<br>
+                • Inline: ${inline}
             `;
-            
-            document.getElementById('jsStats').innerHTML = statsHTML;
+            document.getElementById('jsStats').innerHTML = stats;
         }
         
-        function updateCSSTab() {
-            const { doc } = currentAnalysis;
+        // Update CSS tab
+        function updateCSSTab(doc) {
             const styles = doc.querySelectorAll('style, link[rel="stylesheet"]');
-            
             let cssCode = '';
-            let externalCount = 0;
-            let inlineCount = 0;
+            let external = 0;
+            let inline = 0;
             
             styles.forEach(style => {
                 if (style.tagName === 'STYLE' && style.textContent && style.textContent.trim()) {
-                    inlineCount++;
-                    cssCode += `/* ===== Inline Style ${inlineCount} ===== */\n\n`;
-                    cssCode += style.textContent.trim();
-                    cssCode += '\n\n'.repeat(2);
+                    inline++;
+                    cssCode += style.textContent.trim() + '\n\n';
                 } else if (style.href) {
-                    externalCount++;
-                    cssCode += `/* External CSS: ${style.href} */\n\n`;
+                    external++;
+                    cssCode += `/* External: ${style.href} */\n\n`;
                 }
             });
             
-            document.getElementById('cssCode').textContent = cssCode || '/* Tidak ada CSS ditemukan */';
-            highlightSyntax(document.getElementById('cssCode'), 'css');
+            document.getElementById('cssCode').textContent = cssCode || '/* Tidak ada CSS */';
             
-            // Update stats
-            const statsHTML = `
-                <div class="stat-card">
-                    <div class="stat-title">Total Styles</div>
-                    <div class="stat-value">${styles.length}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">External CSS</div>
-                    <div class="stat-value">${externalCount}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">Inline CSS</div>
-                    <div class="stat-value">${inlineCount}</div>
-                </div>
+            const stats = `
+                <strong>Statistik CSS:</strong><br>
+                • Total Styles: ${styles.length}<br>
+                • External: ${external}<br>
+                • Inline: ${inline}
             `;
-            
-            document.getElementById('cssStats').innerHTML = statsHTML;
+            document.getElementById('cssStats').innerHTML = stats;
         }
         
-        function updateLinksTab() {
-            const { doc } = currentAnalysis;
+        // Update Links tab
+        function updateLinksTab(doc) {
             const links = doc.querySelectorAll('a[href]');
+            let linksHTML = '';
             
-            let linksHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Text</th>
-                            <th>URL</th>
-                            <th>Tipe</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            links.forEach((link, index) => {
-                const href = link.getAttribute('href') || '';
-                const text = link.textContent ? link.textContent.trim().substring(0, 40) : '[No Text]';
-                let type = 'internal';
-                let typeClass = 'status-success';
-                
-                if (href.startsWith('http://') || href.startsWith('https://')) {
-                    type = 'external';
-                    typeClass = 'status-warning';
-                } else if (href.startsWith('#')) {
-                    type = 'anchor';
-                    typeClass = 'status-success';
-                } else if (href.startsWith('mailto:')) {
-                    type = 'mailto';
-                    typeClass = 'status-success';
-                } else if (href.startsWith('tel:')) {
-                    type = 'tel';
-                    typeClass = 'status-success';
-                } else if (href.startsWith('javascript:')) {
-                    type = 'js';
-                    typeClass = 'status-error';
-                }
-                
-                linksHTML += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${escapeHTML(text)}${link.textContent && link.textContent.length > 40 ? '...' : ''}</td>
-                        <td style="font-family: 'Consolas', monospace; font-size: 0.9rem;">
-                            ${escapeHTML(href.substring(0, 60))}${href.length > 60 ? '...' : ''}
-                        </td>
-                        <td><span class="status-badge ${typeClass}">${type}</span></td>
-                    </tr>
+            if (links.length > 0) {
+                linksHTML = `
+                    <table>
+                        <tr><th>No</th><th>Text</th><th>URL</th></tr>
+                        ${Array.from(links).map((link, index) => `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${link.textContent.substring(0, 50)}${link.textContent.length > 50 ? '...' : ''}</td>
+                                <td>${link.href}</td>
+                            </tr>
+                        `).join('')}
+                    </table>
                 `;
-            });
-            
-            linksHTML += `
-                    </tbody>
-                </table>
-            `;
+            } else {
+                linksHTML = '<p>Tidak ada link ditemukan</p>';
+            }
             
             document.getElementById('linksContent').innerHTML = linksHTML;
         }
         
-        function updateResourcesTab() {
-            const { doc } = currentAnalysis;
-            
-            const resources = {
-                scripts: [],
-                stylesheets: [],
-                images: [],
-                iframes: [],
-                fonts: []
-            };
-            
-            // Collect resources
-            doc.querySelectorAll('script[src]').forEach(s => resources.scripts.push(s.src));
-            doc.querySelectorAll('link[rel="stylesheet"][href]').forEach(l => resources.stylesheets.push(l.href));
-            doc.querySelectorAll('img[src]').forEach(i => resources.images.push(i.src));
-            doc.querySelectorAll('iframe[src]').forEach(i => resources.iframes.push(i.src));
-            
-            // Find fonts in CSS
-            const styleTags = doc.querySelectorAll('style');
-            styleTags.forEach(style => {
-                const text = style.textContent;
-                const fontMatches = text.match(/url\(['"]?([^'")]+\.(woff2?|ttf|eot|otf))['"]?\)/gi) || [];
-                fontMatches.forEach(match => {
-                    const url = match.replace(/url\(['"]?/, '').replace(/['"]?\)/, '');
-                    resources.fonts.push(url);
-                });
-            });
-            
-            let resourcesHTML = `
-                <div class="stats-grid" style="padding: 20px;">
-            `;
-            
-            // Display resource counts
-            Object.keys(resources).forEach(type => {
-                if (resources[type].length > 0) {
-                    resourcesHTML += `
-                        <div class="stat-card">
-                            <div class="stat-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
-                            <div class="stat-value">${resources[type].length}</div>
-                        </div>
-                    `;
-                }
-            });
-            
-            resourcesHTML += `
-                </div>
-                <table style="border-top: 1px solid var(--border);">
-                    <thead>
-                        <tr>
-                            <th>Tipe</th>
-                            <th>URL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            // List all resources
-            Object.keys(resources).forEach(type => {
-                resources[type].forEach((url, index) => {
-                    resourcesHTML += `
-                        <tr>
-                            <td><span class="tag-badge">${type}</span></td>
-                            <td style="font-family: 'Consolas', monospace; font-size: 0.9rem;">
-                                ${escapeHTML(url.substring(0, 80))}${url.length > 80 ? '...' : ''}
-                            </td>
-                        </tr>
-                    `;
-                });
-            });
-            
-            resourcesHTML += `
-                    </tbody>
-                </table>
-            `;
-            
-            document.getElementById('resourcesContent').innerHTML = resourcesHTML;
-        }
-        
-        function updateHeadersTab() {
-            const headersCode = JSON.stringify(lastRequestHeaders, null, 2);
-            document.getElementById('headersCode').textContent = headersCode;
-            highlightSyntax(document.getElementById('headersCode'), 'json');
-        }
-        
-        // ==================== HELPER FUNCTIONS ====================
+        // Fungsi helper
         function formatHTML(html) {
-            // Simple HTML formatting with indentation
-            let formatted = '';
+            // Format sederhana
+            let result = '';
             let indent = 0;
-            const tags = html.match(/<[^>]+>|[^<]+/g) || [];
             
-            for (const tag of tags) {
-                if (tag.startsWith('</')) {
+            // Split by tags
+            const parts = html.split(/(<[^>]+>)/g);
+            
+            for (const part of parts) {
+                if (part.startsWith('</')) {
                     indent = Math.max(0, indent - 1);
                 }
                 
-                formatted += '    '.repeat(indent) + tag + '\n';
+                result += '  '.repeat(indent) + part + '\n';
                 
-                if (tag.startsWith('<') && !tag.startsWith('</') && !tag.startsWith('<!') && 
-                    !tag.endsWith('/>') && !tag.match(/<(br|hr|img|meta|link|input)/i)) {
+                if (part.startsWith('<') && !part.startsWith('</') && 
+                    !part.startsWith('<!') && !part.endsWith('/>')) {
                     indent++;
                 }
             }
             
-            return formatted;
+            return result;
         }
         
-        function getUniqueTags(doc) {
-            const tags = new Set();
-            doc.querySelectorAll('*').forEach(el => {
-                tags.add(el.tagName.toLowerCase());
-            });
-            return Array.from(tags);
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').style.display = 'block';
         }
         
-        function highlightSyntax(element, language) {
-            if (!element || !element.textContent) return;
-            
-            let code = element.textContent;
-            let highlighted = code;
-            
-            switch (language) {
-                case 'html':
-                    highlighted = highlighted.replace(/&lt;(\/?)(\w+)/g, '<span class="token tag">&lt;$1$2</span>');
-                    highlighted = highlighted.replace(/(\w+)=/g, '<span class="token attr-name">$1</span>=');
-                    highlighted = highlighted.replace(/&quot;(.*?)&quot;/g, '<span class="token attr-value">&quot;$1&quot;</span>');
-                    highlighted = highlighted.replace(/&lt;!--(.*?)--&gt;/g, '<span class="token comment">&lt;!--$1--&gt;</span>');
-                    break;
-                    
-                case 'javascript':
-                    const keywords = ['function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 
-                                     'return', 'class', 'import', 'export', 'from', 'async', 'await'];
-                    keywords.forEach(keyword => {
-                        const regex = new RegExp(`\\b${keyword}\\b`, 'g');
-                        highlighted = highlighted.replace(regex, `<span class="token keyword">${keyword}</span>`);
-                    });
-                    highlighted = highlighted.replace(/(\w+)\(/g, '<span class="token function">$1</span>(');
-                    highlighted = highlighted.replace(/"(.*?)"/g, '<span class="token string">"$1"</span>');
-                    highlighted = highlighted.replace(/\b(\d+)\b/g, '<span class="token number">$1</span>');
-                    break;
-                    
-                case 'css':
-                    highlighted = highlighted.replace(/(.*?)\{/g, '<span class="token selector">$1</span>{');
-                    highlighted = highlighted.replace(/([-\w]+)\s*:/g, '<span class="token property">$1</span>:');
-                    highlighted = highlighted.replace(/:\s*([^;]+);/g, ': <span class="token value">$1</span>;');
-                    break;
-                    
-                case 'json':
-                    highlighted = highlighted.replace(/("[\w]+"):/g, '<span class="token property">$1</span>:');
-                    highlighted = highlighted.replace(/:\s*"([^"]+)"/g, ': <span class="token string">"$1"</span>');
-                    highlighted = highlighted.replace(/:\s*(\d+)/g, ': <span class="token number">$1</span>');
-                    highlighted = highlighted.replace(/(true|false|null)/g, '<span class="token keyword">$1</span>');
-                    break;
-            }
-            
-            element.innerHTML = highlighted;
-        }
-        
-        function showTab(tabId) {
-            // Hide all tabs
+        function showTab(tabName) {
+            // Sembunyikan semua tab
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -1292,114 +341,22 @@
                 tab.classList.remove('active');
             });
             
-            // Show selected tab
-            document.getElementById(tabId + 'Tab').classList.add('active');
-            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
-        }
-        
-        function copyCode(elementId) {
-            const element = document.getElementById(elementId);
-            if (!element) return;
+            // Tampilkan tab yang dipilih
+            document.getElementById(tabName + 'Tab').classList.add('active');
             
-            const text = element.textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Kode berhasil disalin ke clipboard!');
-            }).catch(err => {
-                console.error('Gagal menyalin:', err);
-                alert('Gagal menyalin kode');
-            });
+            // Update tab button
+            event.target.classList.add('active');
         }
         
-        function downloadCode(type, content) {
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `website_${type}_${Date.now()}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-        
-        function resetUI() {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.style.display = 'none';
-            });
-            document.getElementById('overviewContent').innerHTML = '';
-        }
-        
-        function showLoading() {
-            document.getElementById('loading').style.display = 'block';
-        }
-        
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-        }
-        
-        function showError(title, message) {
-            document.getElementById('errorTitle').textContent = title;
-            document.getElementById('errorMessage').textContent = message;
-            document.getElementById('errorBox').style.display = 'block';
-            hideLoading();
-        }
-        
-        function hideError() {
-            document.getElementById('errorBox').style.display = 'none';
-        }
-        
-        function toggleErrorDetails() {
-            const details = document.getElementById('errorDetails');
-            const button = document.querySelector('#errorBox .code-btn');
-            
-            if (details.style.display === 'none') {
-                details.style.display = 'block';
-                button.textContent = 'Sembunyikan Detail Teknis';
-                
-                // Add technical details
-                const errorDetails = `
-URL yang diakses: ${document.getElementById('urlInput').value}
-Proxy yang digunakan: ${PROXIES[document.getElementById('proxySelect').value].name}
-Waktu: ${new Date().toLocaleString()}
-User-Agent: ${navigator.userAgent}
-`;
-                details.textContent = errorDetails;
-            } else {
-                details.style.display = 'none';
-                button.textContent = 'Tampilkan Detail Teknis';
+        // Event listener untuk Enter key
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                inspectWebsite();
             }
-        }
-        
-        function escapeHTML(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            // Setup tab click handlers
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    showTab(this.getAttribute('data-tab'));
-                });
-            });
-            
-            // Setup Enter key on URL input
-            document.getElementById('urlInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    inspectWebsite();
-                }
-            });
-            
-            // Focus on URL input
-            setTimeout(() => {
-                document.getElementById('urlInput').focus();
-                document.getElementById('urlInput').select();
-            }, 100);
-            
-            console.log('Website Inspector Pro siap digunakan!');
         });
+        
+        // Auto-focus
+        document.getElementById('urlInput').focus();
     </script>
 </body>
 </html>
